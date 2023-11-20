@@ -35,7 +35,8 @@ namespace Tools {
         // static Logger& getInstance(int level);
         void setLevelProperty(int level, Code color, const char* levelString);
 
-        void Log(Level level, const char* message);
+        template<typename ...Args>
+        void Log(Level level, const Args&... args);
 
         Logger(const Logger&) = delete;
         Logger& operator=(const Logger&) = delete;

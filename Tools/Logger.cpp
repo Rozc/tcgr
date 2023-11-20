@@ -4,6 +4,8 @@
 
 #include "Logger.h"
 
+
+
 namespace Tools {
     std::ostream &operator<<(std::ostream &os, Tools::Code code) {
         return os << "\033[" << static_cast<int>(code) << "m";
@@ -41,14 +43,31 @@ namespace Tools {
         strftime(_currentTime, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
     }
 
-    void Logger::Log(Tools::Level level, const char *message) {
+//    void Logger::Log(Tools::Level level, const char *message) {
+//        _setTime();
+//        std::cout << _levelColor[level];
+//        std::cout << "[" << _currentTime << "] ";
+//        std::cout << "[" << _levelString[level] << "] ";
+//        std::cout << message;
+//        std::cout << DEFAULT << std::endl;
+//    }
+
+    template<typename ...Args>
+    void Logger::Log(Level level, const Args&... args) {
         _setTime();
         std::cout << _levelColor[level];
         std::cout << "[" << _currentTime << "] ";
         std::cout << "[" << _levelString[level] << "] ";
-        std::cout << message;
-        std::cout << DEFAULT << std::endl;
 
+        int _ = { _printEach(args)... };
+
+        std::cout << DEFAULT << std::endl;
+    }
+
+    template<class T>
+    int _printEach(const T& arg) {
+        std::cout << arg;
+        return 0;
     }
 
     void Logger::setLevelProperty(int level, Code color, const char *levelString) {
