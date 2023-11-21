@@ -49,7 +49,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-const size_t LISTENQ = 1024;
-const size_t MAXLINE = 256; // 一行的最大长度
+
 
 #endif //TCGR_HEADER_H

@@ -18,13 +18,15 @@ namespace Tools {
 
     Logger::Logger() {
         _currentLevel = 0;
-        _maxLevel = 4;
+        _maxLevel = 5;
+        _timeNow = time(nullptr);
         _currentTime = new char[20];
         _levelString = new char*[5];
         _levelColor = new Code[5];
 
         setLevelProperty(DEBUG, GREEN, "DEBUG");
         setLevelProperty(INFO, DEFAULT, "INFO");
+        setLevelProperty(IMPORTANT, CYAN, "IMPORTANT");
         setLevelProperty(WARN, YELLOW, "WARN");
         setLevelProperty(ERROR, MAGENTA, "ERROR");
         setLevelProperty(FATAL, RED, "FATAL");
@@ -39,8 +41,8 @@ namespace Tools {
 
     void Logger::_setTime() {
         // TODO: convert time to UTC+8
-        static time_t now = time(nullptr);
-        strftime(_currentTime, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+        _timeNow = time(nullptr);
+        strftime(_currentTime, 20, "%Y-%m-%d %H:%M:%S", localtime(&_timeNow));
     }
 
 //    void Logger::Log(Tools::Level level, const char *message) {

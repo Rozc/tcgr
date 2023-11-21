@@ -8,7 +8,6 @@ add_executable(tcgr main.cpp
         Tools/Logger.h
         Net/TcpServer.cpp
         Net/TcpServer.h
-        Net/Session.h
         Net/header.h
         Tools/ThreadPool.cpp
         Tools/ThreadPool.h)

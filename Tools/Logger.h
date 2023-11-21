@@ -8,6 +8,13 @@
 #include <iostream>
 #include <ctime>
 
+#define DEBUG 0
+#define INFO 1
+#define IMPORTANT 2
+#define WARN 3
+#define ERROR 4
+#define FATAL 5
+
 namespace Tools {
     enum Code {
         DEFAULT = 39,
@@ -21,14 +28,6 @@ namespace Tools {
     };
     std::ostream& operator<<(std::ostream& os, Code code);
 
-    enum Level {
-        DEBUG = 0,
-        INFO = 1,
-        WARN = 2,
-        ERROR = 3,
-        FATAL = 4
-    };
-
     class Logger {
     public:
         static Logger& getInstance();
@@ -36,7 +35,14 @@ namespace Tools {
         void setLevelProperty(int level, Code color, const char* levelString);
 
         template<typename ...Args>
-        void Log(Level level, const Args&... args) {
+        void Log(int level, const Args&... args) {
+            if (level < 0 || level > _maxLevel) {
+                Log(FATAL, "Invalid Log Level");
+                return;
+            }
+            if (level < _currentLevel) {
+                return;
+            }
             _setTime();
             std::cout << _levelColor[level];
             std::cout << "[" << _currentTime << "] ";
@@ -62,6 +68,7 @@ namespace Tools {
 
         int _currentLevel;
         int _maxLevel;
+        time_t _timeNow;
         char* _currentTime;
         char** _levelString;
         Code* _levelColor;
