@@ -23,6 +23,9 @@ namespace Net {
         void _createListenSocket();
         void _epollAdd(int fd, int event);
         void _epollDel(int fd);
+        void _epollRun(epoll_event epollEvents[], size_t epollEventCount);
+        int _serverAccept();
+        static void _serverIO(int fd);
     public:
         std::unordered_map<int, std::pair<std::string, int>> _commFdMap;
         std::mutex _commFdMapMutex;
@@ -37,14 +40,9 @@ namespace Net {
             }
         }
 
-        void init(int port, size_t threadSize = 5) {
-            _port = port;
-            _threadPool = std::make_shared<ThreadPool>(threadSize);
-            _listenFd = -1;
-            _epollFd = -1;
+        void init(int port, size_t threadSize = 5);
 
-            _createListenSocket();
-        }
+        void run();
 
 
         TcpServer(const TcpServer&) = delete;

@@ -1,10 +1,14 @@
-#include <iostream>
+#include <cstdio>
 #include "Tools/Logger.h"
+#include "Net/TcpServer.h"
 
 int main() {
     Tools::Logger& logger = Tools::Logger::getInstance();
+    logger.Log(Tools::DEBUG, "Welcome, server is starting...");
 
-    logger.Log(Tools::DEBUG, "Server Starting...", 123, "Test", 3.14);
+    Net::TcpServer& server = Net::TcpServer::getInstance();
+    server.init(6666);
+    server.run();
 
     return 0;
 }

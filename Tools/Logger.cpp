@@ -52,23 +52,9 @@ namespace Tools {
 //        std::cout << DEFAULT << std::endl;
 //    }
 
-    template<typename ...Args>
-    void Logger::Log(Level level, const Args&... args) {
-        _setTime();
-        std::cout << _levelColor[level];
-        std::cout << "[" << _currentTime << "] ";
-        std::cout << "[" << _levelString[level] << "] ";
 
-        int _ = { _printEach(args)... };
 
-        std::cout << DEFAULT << std::endl;
-    }
 
-    template<class T>
-    int _printEach(const T& arg) {
-        std::cout << arg;
-        return 0;
-    }
 
     void Logger::setLevelProperty(int level, Code color, const char *levelString) {
         _levelColor[level] = color;
