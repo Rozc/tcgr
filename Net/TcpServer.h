@@ -19,13 +19,19 @@ extern Tools::Logger& logger;
 namespace Net {
     class TcpServer {
     private:
+        bool _inited;
         int _listenFd;
         std::string _ipAddr;
         int _port;
         int _epollFd;
         std::shared_ptr<ThreadPool> _threadPool;
 
-        TcpServer() = default;
+        TcpServer() {
+            _inited = false;
+            _listenFd = -1;
+            _epollFd = -1;
+            _port = -1;
+        }
         void _createListenSocket();
         void _epollAdd(int fd, int event);
         void _epollDel(int fd);

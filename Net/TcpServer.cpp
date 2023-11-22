@@ -4,6 +4,7 @@
 
 #include "TcpServer.h"
 namespace Net {
+
     void TcpServer::init(int port, size_t threadSize) {
         _port = port;
         _threadPool = std::make_shared<ThreadPool>(threadSize);
@@ -11,28 +12,33 @@ namespace Net {
         _epollFd = -1;
 
         _createListenSocket();
-        logger.Log(IMPORTANT, "Listen on ", _ipAddr, ":", _port, ", fd = ", _listenFd);
+        logger.Log(LOG_INFO, "TcpServer inited. Port = ", _port);
+        _inited = true;
     }
 
 
     void TcpServer::run() {
+        if (!_inited) {
+            logger.Log(LOG_FATAL, "TcpServer not inited");
+            exit(-1);
+        }
         _epollFd = epoll_create(EPOLL_SIZE);
         if (_epollFd == -1) {
-            logger.Log(FATAL, "Create Epoll Failed");
+            logger.Log(LOG_FATAL, "Create Epoll Failed");
             exit(-1);
         }
         _epollAdd(_listenFd, EPOLLIN | EPOLLET);
 
-
+        logger.Log(LOG_IMPT, "TcpServer running, Listening on ", _ipAddr, ":", _port);
 
         while (true) {
             epoll_event epollEvents[MAX_EVENTS];
             int epollEventCount = epoll_wait(_epollFd, epollEvents, MAX_EVENTS, -1);
             if (epollEventCount == -1) {
-                logger.Log(FATAL, "Epoll Wait Failed");
+                logger.Log(LOG_FATAL, "Epoll Wait Failed");
                 exit(-1);
             } else if (epollEventCount == 0) {
-                logger.Log(WARN, "Epoll Wait Timeout");
+                logger.Log(LOG_WARN, "Epoll Wait Timeout");
                 continue;
             } else {
                 _epollRun(epollEvents, epollEventCount);
@@ -47,7 +53,7 @@ namespace Net {
         // 创建监听 socket
         _listenFd = socket(AF_INET, SOCK_STREAM, 0);
         if (_listenFd == -1) {
-            logger.Log(FATAL, "Create Listen Socket Failed");
+            logger.Log(LOG_FATAL, "Create Listen Socket Failed");
             exit(-1);
         }
 
@@ -62,11 +68,11 @@ namespace Net {
         serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
         _ipAddr = inet_ntoa(serverAddr.sin_addr);
         if (bind(_listenFd, (sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) {
-            logger.Log(FATAL, "Bind Listen Socket Failed");
+            logger.Log(LOG_FATAL, "Bind Listen Socket Failed");
             exit(-1);
         }
         if (listen(_listenFd, LISTENQ) == -1) {
-            logger.Log(FATAL, "Listen Failed");
+            logger.Log(LOG_FATAL, "Listen Failed");
             exit(-1);
         }
     }
@@ -84,7 +90,7 @@ namespace Net {
     }
 
     void TcpServer::_epollRun(epoll_event *epollEvents, size_t epollEventCount) {
-        logger.Log(DEBUG, "Epoll Event Count = ", epollEventCount);
+        logger.Log(LOG_DEBUG, "Epoll Event Count = ", epollEventCount);
         for (int i=0; i<epollEventCount; ++i) {
             int fd = epollEvents[i].data.fd;
             if (epollEvents[i].events & EPOLLIN) {
@@ -103,12 +109,12 @@ namespace Net {
         socklen_t clientAddrLen = sizeof(clientAddr);
         int commFd = accept(_listenFd, (sockaddr*)&clientAddr, &clientAddrLen);
         if (commFd == -1) {
-            logger.Log(FATAL, "Accept Failed");
+            logger.Log(LOG_FATAL, "Accept Failed");
             exit(-1);
         }
         _epollAdd(commFd, EPOLLIN);
         _commFdMap[commFd] = std::make_pair(inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-        logger.Log(INFO, "Accept Connection From ", _commFdMap[commFd].first, ":", _commFdMap[commFd].second, ", fd = ", commFd);
+        logger.Log(LOG_INFO, "Accept Connection From ", _commFdMap[commFd].first, ":", _commFdMap[commFd].second, ", fd = ", commFd);
         return commFd;
     }
 
@@ -116,26 +122,29 @@ namespace Net {
         char buffer[1024];
         ssize_t recvLen = recv(fd, buffer, sizeof(buffer), 0);
         if (recvLen == -1) {
-            logger.Log(ERROR, "Recv Failed");
+            logger.Log(LOG_ERROR, "Recv Failed");
             return;
         } else if (recvLen == 0) {
-            logger.Log(INFO, "Connection Closed");
+            logger.Log(LOG_INFO, "Connection Closed, fd = ", fd, ", ip = ", TcpServer::getInstance()._commFdMap[fd].first, ", port = ", TcpServer::getInstance()._commFdMap[fd].second);
             close(fd);
             TcpServer::getInstance()._epollDel(fd);
             TcpServer::getInstance()._commFdMap.erase(fd);
             return;
         } else {
             buffer[recvLen] = '\0';
-            logger.Log(INFO, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
-            ssize_t sendLen = send(fd, buffer, recvLen, 0);
-            if (sendLen == -1) {
-                logger.Log(ERROR, "Send Failed");
-                return;
-            } else {
-                logger.Log(INFO, "Send To ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
-            }
+            logger.Log(LOG_DEBUG, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
+
+//            ssize_t sendLen = send(fd, buffer, recvLen, 0);
+//            if (sendLen == -1) {
+//                logger.Log(LOG_ERROR, "Send Failed");
+//                return;
+//            } else {
+//                logger.Log(LOG_DEBUG, "Send To ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
+//            }
         }
     }
+
+
 
 
 }

@@ -24,12 +24,12 @@ namespace Tools {
         _levelString = new char*[5];
         _levelColor = new Code[5];
 
-        setLevelProperty(DEBUG, GREEN, "DEBUG");
-        setLevelProperty(INFO, DEFAULT, "INFO");
-        setLevelProperty(IMPORTANT, CYAN, "IMPORTANT");
-        setLevelProperty(WARN, YELLOW, "WARN");
-        setLevelProperty(ERROR, MAGENTA, "ERROR");
-        setLevelProperty(FATAL, RED, "FATAL");
+        setLevelProperty(LOG_DEBUG, GREEN, "LOG_DEBUG");
+        setLevelProperty(LOG_INFO, DEFAULT, "LOG_INFO");
+        setLevelProperty(LOG_IMPT, CYAN, "LOG_IMPT");
+        setLevelProperty(LOG_WARN, YELLOW, "LOG_WARN");
+        setLevelProperty(LOG_ERROR, MAGENTA, "LOG_ERROR");
+        setLevelProperty(LOG_FATAL, RED, "LOG_FATAL");
 
     }
 

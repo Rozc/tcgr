@@ -6,7 +6,7 @@ Tools::Logger& logger = Tools::Logger::getInstance();
 
 int main() {
 
-    logger.Log(IMPORTANT, "Welcome, server is starting...");
+    logger.Log(LOG_IMPT, "Welcome, server is starting...");
 
     Net::TcpServer& server = Net::TcpServer::getInstance();
     server.init(6666);

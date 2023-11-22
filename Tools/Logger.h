@@ -8,12 +8,12 @@
 #include <iostream>
 #include <ctime>
 
-#define DEBUG 0
-#define INFO 1
-#define IMPORTANT 2
-#define WARN 3
-#define ERROR 4
-#define FATAL 5
+#define LOG_DEBUG 0
+#define LOG_INFO 1
+#define LOG_IMPT 2
+#define LOG_WARN 3
+#define LOG_ERROR 4
+#define LOG_FATAL 5
 
 namespace Tools {
     enum Code {
@@ -37,7 +37,7 @@ namespace Tools {
         template<typename ...Args>
         void Log(int level, const Args&... args) {
             if (level < 0 || level > _maxLevel) {
-                Log(FATAL, "Invalid Log Level");
+                Log(LOG_FATAL, "Invalid Log Level");
                 return;
             }
             if (level < _currentLevel) {

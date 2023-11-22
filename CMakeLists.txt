@@ -10,4 +10,8 @@ add_executable(tcgr main.cpp
         Net/TcpServer.h
         Net/header.h
         Tools/ThreadPool.cpp
-        Tools/ThreadPool.h)
+        Tools/ThreadPool.h
+        Game/Room.cpp
+        Game/Room.h
+        Net/ServerIO.cpp
+        Net/ServerIO.h)
