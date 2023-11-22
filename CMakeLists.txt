@@ -14,4 +14,8 @@ add_executable(tcgr main.cpp
         Game/Room.cpp
         Game/Room.h
         Net/ServerIO.cpp
-        Net/ServerIO.h)
+        Net/ServerIO.h
+        Game/Player.cpp
+        Game/Player.h
+        include/json/json.h
+        include/jsoncpp.cpp)

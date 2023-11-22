@@ -10,7 +10,7 @@
 
 #define LOG_DEBUG 0
 #define LOG_INFO 1
-#define LOG_IMPT 2
+#define LOG_FOCUS 2
 #define LOG_WARN 3
 #define LOG_ERROR 4
 #define LOG_FATAL 5

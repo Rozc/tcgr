@@ -29,7 +29,7 @@ namespace Net {
         }
         _epollAdd(_listenFd, EPOLLIN | EPOLLET);
 
-        logger.Log(LOG_IMPT, "TcpServer running, Listening on ", _ipAddr, ":", _port);
+        logger.Log(LOG_FOCUS, "TcpServer running, Listening on ", _ipAddr, ":", _port);
 
         while (true) {
             epoll_event epollEvents[MAX_EVENTS];
@@ -133,7 +133,7 @@ namespace Net {
         } else {
             buffer[recvLen] = '\0';
             logger.Log(LOG_DEBUG, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
-
+            std::string str = buffer;
 //            ssize_t sendLen = send(fd, buffer, recvLen, 0);
 //            if (sendLen == -1) {
 //                logger.Log(LOG_ERROR, "Send Failed");

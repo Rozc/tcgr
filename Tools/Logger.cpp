@@ -21,15 +21,15 @@ namespace Tools {
         _maxLevel = 5;
         _timeNow = time(nullptr);
         _currentTime = new char[20];
-        _levelString = new char*[5];
-        _levelColor = new Code[5];
+        _levelString = new char*[_maxLevel+1];
+        _levelColor = new Code[_maxLevel+1];
 
-        setLevelProperty(LOG_DEBUG, GREEN, "LOG_DEBUG");
-        setLevelProperty(LOG_INFO, DEFAULT, "LOG_INFO");
-        setLevelProperty(LOG_IMPT, CYAN, "LOG_IMPT");
-        setLevelProperty(LOG_WARN, YELLOW, "LOG_WARN");
-        setLevelProperty(LOG_ERROR, MAGENTA, "LOG_ERROR");
-        setLevelProperty(LOG_FATAL, RED, "LOG_FATAL");
+        setLevelProperty(LOG_DEBUG, GREEN, "DEBUG");
+        setLevelProperty(LOG_INFO, DEFAULT, "INFO");
+        setLevelProperty(LOG_FOCUS, CYAN, "FOCUS");
+        setLevelProperty(LOG_WARN, YELLOW, "WARN");
+        setLevelProperty(LOG_ERROR, MAGENTA, "ERROR");
+        setLevelProperty(LOG_FATAL, RED, "FATAL");
 
     }
 

@@ -5,13 +5,19 @@
 #ifndef TCGR_ROOM_H
 #define TCGR_ROOM_H
 
+#include "Player.h"
 
-class Room {
-private:
+namespace Game {
+    class Room {
+    private:
 
-public:
-    int clientFd[];
-};
+    public:
+        int fdA, fdB;
+        Player playerA, playerB;
+
+    };
+}
+
 
 
 #endif //TCGR_ROOM_H
