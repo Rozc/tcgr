@@ -15,6 +15,8 @@
 #define LOG_ERROR 4
 #define LOG_FATAL 5
 
+
+
 namespace Tools {
     enum Code {
         DEFAULT = 39,
@@ -77,8 +79,6 @@ namespace Tools {
 
     };
 }
-
-
 
 
 #endif //TCGR_LOGGER_H

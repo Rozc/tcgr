@@ -63,12 +63,26 @@ public:
         if (!str2json(str, &msg.data)) {
             return false;
         }
-        // TODO 将消息转发给对应房间
+        // 检查 fd 是否在 map 中
+        if (_commFdMap.find(fd) == _commFdMap.end()) {
+            // 不在, 说明是新用户, 将其加入匹配队列
+            // TODO 将消息转发给匹配队列
+            return true;
+        } else {
+            // 在, 说明已经有房间了, 将消息转发给对应房间
+            // TODO 将消息转发给对应房间
+            return true;
+        }
+
 
         return true;
     }
 
-    bool Send(int fd, char* buf, int len);
+    bool Send(int fd, const std::string& str) {
+        // 接收来自房间的消息, 转发给对应 fd
+        return false;
+    }
+
     void resolve(char* msg, int len);
 };
 

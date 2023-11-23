@@ -18,4 +18,12 @@ add_executable(tcgr main.cpp
         Game/Player.cpp
         Game/Player.h
         include/json/json.h
-        include/jsoncpp.cpp)
+        include/jsoncpp.cpp
+        Game/MatchQueue.cpp
+        Game/MatchQueue.h
+        Game/GameServer.cpp
+        Game/GameServer.h
+        Tools/Poolable.cpp
+        Tools/Poolable.h
+        Tools/ObjectPool.cpp
+        Tools/ObjectPool.h)
