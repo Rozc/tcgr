@@ -3,6 +3,8 @@
 //
 
 #include "TcpServer.h"
+#include "ServerIO.h"
+
 namespace Net {
 
     void TcpServer::init(int port, size_t threadSize) {

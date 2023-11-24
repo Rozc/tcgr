@@ -25,6 +25,8 @@
 #include <queue>
 #include <memory>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "../Tools/Logger.h"
 #include "../Net/ServerIO.h"
 
@@ -63,13 +65,15 @@ private:
     Player* _matchingPlayers[RANK_NUM]{};
     std::queue<Player*> _waitingQueue;
 
-    std::thread* _matchingThread;
+    std::mutex _mx;
+    std::condition_variable _cv;
+
     bool _matching;
 
     MatchQueue() {
         _matching = false;
-        std::thread t1(&MatchQueue::matchingProcess, this);
-        _matchingThread = &t1;
+        std::thread t1(&MatchQueue::matchingThread, this);
+        t1.detach();
         for (auto & _matchingPlayer : _matchingPlayers) {
             _matchingPlayer = nullptr;
         }
@@ -87,10 +91,16 @@ private:
         return RANK_NUM - 1;
     }
 
-    void matchingProcess() {
+    void matchingThread() {
+        // consumer
         while (true) {
-            _matching = true;
+            std::unique_lock<std::mutex> lock(_mx);
+
             logger.Log(LOG_DEBUG, "Matching Process Start.");
+            while (_waitingQueue.empty()) {
+                _cv.wait(lock);
+            }
+            _matching = true;
             while (!_waitingQueue.empty()) {
                 Player *player = _waitingQueue.front();
                 _waitingQueue.pop();
@@ -108,23 +118,25 @@ private:
                 }
             }
             _matching = false;
-            logger.Log(LOG_DEBUG, "Matching Process End.");
-            std::this_thread::yield();
         }
 
     }
+    void transferThread() {
+        // transfer the player in waiting queue to the matching queue.
 
-    // TODO: GC: 每隔一段时间检查 _playerMap 中的玩家是否有被删除的，如果有则 delete
-    // 考虑使用智能指针
+
+    }
+
 public:
     void enqueue(int fd, int score) {
         // auto player = std::make_shared<Player>(fd, score, time(nullptr));
         auto* player = new Player(fd, score, time(nullptr));
         _playerMap[fd] = player;
+        std::unique_lock<std::mutex> lock(_mx);
+        logger.Log(LOG_DEBUG, "Player ", fd, " enqueue.");
         _waitingQueue.push(player);
-        if (!_matching) {
-            _matchingThread->
-        }
+        lock.unlock();
+        _cv.notify_one();
     }
 
     static MatchQueue& getInstance() {
