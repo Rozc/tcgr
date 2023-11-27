@@ -38,7 +38,7 @@ namespace Net {
         void _epollDel(int fd);
         void _epollRun(epoll_event epollEvents[], size_t epollEventCount);
         int _serverAccept();
-        static void _serverIO(int fd);
+        static void _receive(int fd);
     public:
         std::unordered_map<int, std::pair<std::string, int>> _commFdMap;
         std::mutex _commFdMapMutex;

@@ -52,11 +52,6 @@ struct Player {
         this->deleted = false;
     }
 };
-struct PlayerCmp {
-    bool operator()(const Player* a, const Player* b) {
-        return a->joinTime > b->joinTime;
-    }
-};
 
 
 class MatchQueue {
@@ -65,18 +60,20 @@ private:
     Player* _matchingPlayers[RANK_NUM]{};
     std::queue<Player*> _waitingQueue;
 
+    std::thread _matchingThread;
     std::mutex _mx;
     std::condition_variable _cv;
 
     bool _matching;
 
-    MatchQueue() {
+    MatchQueue() : _matchingThread(&MatchQueue::matchingThreadFunc, this) {
         _matching = false;
-        std::thread t1(&MatchQueue::matchingThread, this);
-        t1.detach();
+        _matchingThread.detach();
+
         for (auto & _matchingPlayer : _matchingPlayers) {
             _matchingPlayer = nullptr;
         }
+        logger.Log(LOG_FOCUS, "MatchQueue inited, matching thread running.");
     }
 
 
@@ -91,15 +88,15 @@ private:
         return RANK_NUM - 1;
     }
 
-    void matchingThread() {
+    void matchingThreadFunc() {
         // consumer
+        std::unique_lock<std::mutex> lock(_mx);
         while (true) {
-            std::unique_lock<std::mutex> lock(_mx);
 
-            logger.Log(LOG_DEBUG, "Matching Process Start.");
             while (_waitingQueue.empty()) {
                 _cv.wait(lock);
             }
+            logger.Log(LOG_DEBUG, "Matching Process Start.");
             _matching = true;
             while (!_waitingQueue.empty()) {
                 Player *player = _waitingQueue.front();
@@ -115,15 +112,12 @@ private:
                     Player *otherPlayer = _matchingPlayers[rank];
                     _matchingPlayers[rank] = nullptr;
                     logger.Log(LOG_INFO, "Match Success: ", player->fd, " vs ", otherPlayer->fd);
+                    // TODO: 匹配成功要告诉 ServerIO
                 }
             }
+            logger.Log(LOG_DEBUG, "Matching queue empty. Matching thread sleep.");
             _matching = false;
         }
-
-    }
-    void transferThread() {
-        // transfer the player in waiting queue to the matching queue.
-
 
     }
 

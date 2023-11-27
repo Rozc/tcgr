@@ -36,6 +36,7 @@ namespace Net {
         while (true) {
             epoll_event epollEvents[MAX_EVENTS];
             int epollEventCount = epoll_wait(_epollFd, epollEvents, MAX_EVENTS, -1);
+            logger.Log(LOG_DEBUG, "Epoll Event Count = ", epollEventCount);
             if (epollEventCount == -1) {
                 logger.Log(LOG_FATAL, "Epoll Wait Failed");
                 exit(-1);
@@ -65,6 +66,7 @@ namespace Net {
 
 
         sockaddr_in serverAddr{};
+        memset(&serverAddr, 0, sizeof(serverAddr));
         serverAddr.sin_family = AF_INET;
         serverAddr.sin_port = htons(_port);
         serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -92,7 +94,6 @@ namespace Net {
     }
 
     void TcpServer::_epollRun(epoll_event *epollEvents, size_t epollEventCount) {
-        logger.Log(LOG_DEBUG, "Epoll Event Count = ", epollEventCount);
         for (int i=0; i<epollEventCount; ++i) {
             int fd = epollEvents[i].data.fd;
             if (epollEvents[i].events & EPOLLIN) {
@@ -100,7 +101,8 @@ namespace Net {
                     int commFd = _serverAccept();
                     _epollAdd(commFd, EPOLLIN);
                 } else {
-                    _threadPool->enqueue(_serverIO, fd);
+                    logger.Log(LOG_DEBUG, "Receive Event From ", _commFdMap[fd].first, ":", _commFdMap[fd].second, ", fd = ", fd);
+                    _threadPool->enqueue(_receive, fd);
                 }
             }
         }
@@ -111,6 +113,7 @@ namespace Net {
         socklen_t clientAddrLen = sizeof(clientAddr);
         int commFd = accept(_listenFd, (sockaddr*)&clientAddr, &clientAddrLen);
         if (commFd == -1) {
+            // TODO: 改成 ERROR
             logger.Log(LOG_FATAL, "Accept Failed");
             exit(-1);
         }
@@ -120,22 +123,25 @@ namespace Net {
         return commFd;
     }
 
-    void TcpServer::_serverIO(int fd) {
+    void TcpServer::_receive(int fd) {
         char buffer[1024];
         ssize_t recvLen = recv(fd, buffer, sizeof(buffer), 0);
         if (recvLen == -1) {
             logger.Log(LOG_ERROR, "Recv Failed");
+            close(fd);
             return;
         } else if (recvLen == 0) {
             logger.Log(LOG_INFO, "Connection Closed, fd = ", fd, ", ip = ", TcpServer::getInstance()._commFdMap[fd].first, ", port = ", TcpServer::getInstance()._commFdMap[fd].second);
-            close(fd);
             TcpServer::getInstance()._epollDel(fd);
             TcpServer::getInstance()._commFdMap.erase(fd);
+            close(fd);
             return;
         } else {
             buffer[recvLen] = '\0';
             logger.Log(LOG_DEBUG, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
             std::string str = buffer;
+            // ServerIO::getInstance().Recv(fd, str);
+
 //            ssize_t sendLen = send(fd, buffer, recvLen, 0);
 //            if (sendLen == -1) {
 //                logger.Log(LOG_ERROR, "Send Failed");

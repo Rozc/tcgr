@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <mutex>
 
 #define LOG_DEBUG 0
 #define LOG_INFO 1
@@ -28,16 +29,18 @@ namespace Tools {
         CYAN = 36,
         GRAY = 37
     };
-    std::ostream& operator<<(std::ostream& os, Code code);
+
+    std::ostream &operator<<(std::ostream &os, Code code);
 
     class Logger {
     public:
-        static Logger& getInstance();
+        static Logger &getInstance();
+
         // static Logger& getInstance(int level);
-        void setLevelProperty(int level, Code color, const char* levelString);
+        void setLevelProperty(int level, Code color, const char *levelString);
 
         template<typename ...Args>
-        void Log(int level, const Args&... args) {
+        void Log(int level, const Args &... args) {
             if (level < 0 || level > _maxLevel) {
                 Log(LOG_FATAL, "Invalid Log Level");
                 return;
@@ -45,35 +48,41 @@ namespace Tools {
             if (level < _currentLevel) {
                 return;
             }
+            std::unique_lock<std::mutex> lock(_mx);
             _setTime();
             std::cout << _levelColor[level];
             std::cout << "[" << _currentTime << "] ";
             std::cout << "[" << _levelString[level] << "] ";
 
-            int _[] = { _printEach(args)... };
+            int _[] = {_printEach(args)...};
 
             std::cout << DEFAULT << std::endl;
         }
 
         template<class T>
-        int _printEach(const T& arg) {
+        int _printEach(const T &arg) {
             std::cout << arg;
             return 0;
         }
 
 
-        Logger(const Logger&) = delete;
-        Logger& operator=(const Logger&) = delete;
+        Logger(const Logger &) = delete;
+
+        Logger &operator=(const Logger &) = delete;
+
     private:
         Logger();
+
         ~Logger();
 
         int _currentLevel;
         int _maxLevel;
         time_t _timeNow;
-        char* _currentTime;
-        char** _levelString;
-        Code* _levelColor;
+        char *_currentTime;
+        char **_levelString;
+        Code *_levelColor;
+
+        std::mutex _mx;
 
         void _setTime();
 

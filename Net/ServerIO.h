@@ -28,7 +28,7 @@ struct Msg {
 
 class ServerIO {
 private:
-    std::unordered_map<int, Game::Room*> _commFdMap;
+    static std::unordered_map<int, Game::Room*> _commFdMap;
 public:
     static std::string json2str(const Json::Value& json, bool styled = false) {
         if (styled) {
@@ -56,7 +56,7 @@ public:
     }
 
 public:
-    bool Recv(int fd, const std::string& str) {
+    static bool Recv(int fd, const std::string& str) {
         Msg msg;
         msg.fd = fd;
         msg.data = Json::Value();
