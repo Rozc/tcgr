@@ -62,6 +62,8 @@ namespace Tools {
         _levelColor[level] = color;
         _levelString[level] = const_cast<char *>(levelString);
     }
+
+    Logger& logger = Logger::getInstance();
 }
 
 

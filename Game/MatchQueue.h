@@ -38,7 +38,6 @@ static const int MATCH_CANCEL_TIMEOUT = 30;
 static const int MIN_SCORE = 0, MAX_SCORE = 5000;
 static const int RANK_SCORE[RANK_NUM] = {MIN_SCORE, 1000, 2000, 3000, MAX_SCORE};
 
-extern Tools::Logger& logger;
 
 struct Player {
     int fd;
@@ -73,7 +72,7 @@ private:
         for (auto & _matchingPlayer : _matchingPlayers) {
             _matchingPlayer = nullptr;
         }
-        logger.Log(LOG_FOCUS, "MatchQueue inited, matching thread running.");
+        Tools::logger.Log(LOG_FOCUS, "MatchQueue inited, matching thread running.");
     }
 
 
@@ -84,7 +83,7 @@ private:
             }
         }
         // should not reach here
-        logger.Log(LOG_ERROR, "MatchQueue::_getRankByScore: score out of range");
+        Tools::logger.Log(LOG_ERROR, "MatchQueue::_getRankByScore: score out of range");
         return RANK_NUM - 1;
     }
 
@@ -96,7 +95,7 @@ private:
             while (_waitingQueue.empty()) {
                 _cv.wait(lock);
             }
-            logger.Log(LOG_DEBUG, "Matching Process Start.");
+            Tools::logger.Log(LOG_DEBUG, "Matching Process Start.");
             _matching = true;
             while (!_waitingQueue.empty()) {
                 Player *player = _waitingQueue.front();
@@ -111,11 +110,11 @@ private:
                     // match success
                     Player *otherPlayer = _matchingPlayers[rank];
                     _matchingPlayers[rank] = nullptr;
-                    logger.Log(LOG_INFO, "Match Success: ", player->fd, " vs ", otherPlayer->fd);
+                    Tools::logger.Log(LOG_INFO, "Match Success: ", player->fd, " vs ", otherPlayer->fd);
                     // TODO: 匹配成功要告诉 ServerIO
                 }
             }
-            logger.Log(LOG_DEBUG, "Matching queue empty. Matching thread sleep.");
+            Tools::logger.Log(LOG_DEBUG, "Matching queue empty. Matching thread sleep.");
             _matching = false;
         }
 
@@ -127,7 +126,7 @@ public:
         auto* player = new Player(fd, score, time(nullptr));
         _playerMap[fd] = player;
         std::unique_lock<std::mutex> lock(_mx);
-        logger.Log(LOG_DEBUG, "Player ", fd, " enqueue.");
+        Tools::logger.Log(LOG_DEBUG, "Player ", fd, " enqueue.");
         _waitingQueue.push(player);
         lock.unlock();
         _cv.notify_one();

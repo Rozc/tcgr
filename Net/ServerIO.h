@@ -19,7 +19,6 @@
 // 对应匹配队列如果存在等待中的用户, 则完成匹配, 并将对应 fd 加入 map 中.
 // 否则在匹配队列中等待.
 
-extern Tools::Logger& logger;
 
 struct Msg {
     int fd;
@@ -49,7 +48,7 @@ public:
         std::string errs;
         bool ok = Json::parseFromStream(reader, iss, json, &errs);
         if (!ok) {
-            logger.Log(LOG_ERROR, "json parse error: ", errs);
+            Tools::logger.Log(LOG_ERROR, "json parse error: ", errs);
             return false;
         }
         return true;

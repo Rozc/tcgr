@@ -87,6 +87,8 @@ namespace Tools {
         void _setTime();
 
     };
+
+    extern Logger& logger;
 }
 
 
