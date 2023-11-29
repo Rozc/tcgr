@@ -24,12 +24,14 @@ namespace Tools {
         _levelString = new char*[_maxLevel+1];
         _levelColor = new Code[_maxLevel+1];
 
-        setLevelProperty(LOG_DEBUG, GREEN, "DEBUG");
-        setLevelProperty(LOG_INFO, DEFAULT, "INFO");
-        setLevelProperty(LOG_FOCUS, CYAN, "FOCUS");
-        setLevelProperty(LOG_WARN, YELLOW, "WARN");
-        setLevelProperty(LOG_ERROR, MAGENTA, "ERROR");
-        setLevelProperty(LOG_FATAL, RED, "FATAL");
+        _taskPool = new TaskPool(1);
+
+        setLevelProperty(LOG_DEBUG, Code::GREEN, "DEBUG");
+        setLevelProperty(LOG_INFO, Code::DEFAULT, "INFO");
+        setLevelProperty(LOG_FOCUS, Code::CYAN, "FOCUS");
+        setLevelProperty(LOG_WARN, Code::YELLOW, "WARN");
+        setLevelProperty(LOG_ERROR, Code::MAGENTA, "ERROR");
+        setLevelProperty(LOG_FATAL, Code::RED, "FATAL");
 
     }
 

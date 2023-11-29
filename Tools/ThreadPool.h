@@ -17,37 +17,53 @@
 #include <memory>			  // 智能指针
 #include <stdexcept> 	      // C++异常
 
-class ThreadPool {
-public:
-    explicit ThreadPool(size_t);
+#include "Thread.h"
 
-    template<class F, class... Args>
-    auto enqueue(F &&f, Args &&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
-        using return_type = typename std::result_of<F(Args...)>::type;
-        auto task = std::make_shared<std::packaged_task<return_type()> >(
-                std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-        );
-        std::future<return_type> res = task->get_future();
-        {
-            std::unique_lock<std::mutex> lock(_queue_mutex);
-            if (_stop) {
-                throw std::runtime_error("enqueue on stopped ThreadPool");
-            }
-            _tasks.emplace([task]() { (*task)(); });
+template<typename ThreadType, typename... Args>
+class ThreadPool {
+    static_assert(std::is_base_of<Thread, ThreadType>::value, "Not thread");
+    static_assert(std::is_constructible<ThreadType, Args &&...>::value, "Not constructible");
+public:
+    explicit ThreadPool(size_t threads_num, Args&&... args) {
+        for (size_t i = 0; i < threads_num; ++i) {
+            threads_.emplace_back(std::make_unique<ThreadType>(std::forward<Args>(args)...));
         }
-        _condition.notify_one();
-        return res;
     }
 
-    ~ThreadPool();
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
+    ThreadPool(ThreadPool&&) = default;
+    ThreadPool& operator=(ThreadPool&&) = default;
+    virtual ~ThreadPool() = default;
 
-private:
-    std::vector<std::thread> _workers;
-    std::queue<std::function<void()>> _tasks;
+    void run() {
+        stopped_ = false;
+        for (auto& thread : threads_) {
+            thread->run();
+        }
+    }
 
-    std::mutex _queue_mutex;
-    std::condition_variable _condition;
-    std::atomic<bool> _stop;
+    void stop() {
+        stopped_ = true;
+        join_all();
+    }
+
+    void join_all() {
+        for (auto& thread : threads_) {
+            thread->join();
+        }
+    }
+
+    void detach_all() {
+        for (auto& thread : threads_) {
+            thread->detach();
+        }
+    }
+
+
+protected:
+    std::vector<std::unique_ptr<ThreadType>> threads_;
+    std::atomic<bool> stopped_{true};
 };
 
 

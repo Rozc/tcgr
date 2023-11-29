@@ -3,13 +3,19 @@ project(tcgr)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_executable(tcgr_test main.cpp
+        Tools/Logger.cpp
+        Tools/Logger.h
+        Tools/ThreadPool.h
+        Tools/TaskPool.h
+        Tools/Thread.h)
+
 add_executable(tcgr main.cpp
         Tools/Logger.cpp
         Tools/Logger.h
         Net/TcpServer.cpp
         Net/TcpServer.h
         Net/header.h
-        Tools/ThreadPool.cpp
         Tools/ThreadPool.h
         Game/Room.cpp
         Game/Room.h
@@ -26,4 +32,8 @@ add_executable(tcgr main.cpp
         Tools/Poolable.cpp
         Tools/Poolable.h
         Tools/ObjectPool.cpp
-        Tools/ObjectPool.h)
+        Tools/ObjectPool.h
+        Tools/Thread.h
+        Tools/TaskPool.h)
+
+add_executable(tcgr_client Client/client.cpp)

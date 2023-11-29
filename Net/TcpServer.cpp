@@ -140,15 +140,8 @@ namespace Net {
             buffer[recvLen] = '\0';
             Tools::logger.Log(LOG_DEBUG, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
             std::string str = buffer;
-            // ServerIO::getInstance().Recv(fd, str);
+            ServerIO::Recv(fd, str);
 
-//            ssize_t sendLen = send(fd, buffer, recvLen, 0);
-//            if (sendLen == -1) {
-//                logger.Log(LOG_ERROR, "Send Failed");
-//                return;
-//            } else {
-//                logger.Log(LOG_DEBUG, "Send To ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
-//            }
         }
     }
 
