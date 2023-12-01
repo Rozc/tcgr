@@ -23,6 +23,10 @@ template<typename ThreadType, typename... Args>
 class ThreadPool {
     static_assert(std::is_base_of<Thread, ThreadType>::value, "Not thread");
     static_assert(std::is_constructible<ThreadType, Args &&...>::value, "Not constructible");
+
+protected:
+    std::vector<std::unique_ptr<ThreadType>> threads_;
+
 public:
     explicit ThreadPool(size_t threads_num, Args&&... args) {
         for (size_t i = 0; i < threads_num; ++i) {
@@ -37,15 +41,15 @@ public:
     virtual ~ThreadPool() = default;
 
     void run() {
-        stopped_ = false;
         for (auto& thread : threads_) {
             thread->run();
         }
     }
 
-    void stop() {
-        stopped_ = true;
-        join_all();
+    void cancel() {
+        for (auto& thread : threads_) {
+            thread->cancel();
+        }
     }
 
     void join_all() {
@@ -60,10 +64,6 @@ public:
         }
     }
 
-
-protected:
-    std::vector<std::unique_ptr<ThreadType>> threads_;
-    std::atomic<bool> stopped_{true};
 };
 
 

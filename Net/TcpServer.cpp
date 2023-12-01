@@ -14,34 +14,34 @@ namespace Net {
         _epollFd = -1;
 
         _createListenSocket();
-        Tools::logger.Log(LOG_INFO, "TcpServer inited. Port = ", _port);
+        mlog::logger.Log(LOG_INFO, "TcpServer inited. Port = ", _port);
         _inited = true;
     }
 
 
     void TcpServer::run() {
         if (!_inited) {
-            Tools::logger.Log(LOG_FATAL, "TcpServer not inited");
+            mlog::logger.Log(LOG_FATAL, "TcpServer not inited");
             exit(-1);
         }
         _epollFd = epoll_create(EPOLL_SIZE);
         if (_epollFd == -1) {
-            Tools::logger.Log(LOG_FATAL, "Create Epoll Failed");
+            mlog::logger.Log(LOG_FATAL, "Create Epoll Failed");
             exit(-1);
         }
         _epollAdd(_listenFd, EPOLLIN | EPOLLET);
 
-        Tools::logger.Log(LOG_FOCUS, "TcpServer running, Listening on ", _ipAddr, ":", _port);
+        mlog::logger.Log(LOG_FOCUS, "TcpServer running, Listening on ", _ipAddr, ":", _port);
 
         while (true) {
             epoll_event epollEvents[MAX_EVENTS];
             int epollEventCount = epoll_wait(_epollFd, epollEvents, MAX_EVENTS, -1);
-            // Tools::logger.Log(LOG_DEBUG, "Epoll Event Count = ", epollEventCount);
+            // mlog::logger.Log(LOG_DEBUG, "Epoll Event Count = ", epollEventCount);
             if (epollEventCount == -1) {
-                Tools::logger.Log(LOG_FATAL, "Epoll Wait Failed");
+                mlog::logger.Log(LOG_FATAL, "Epoll Wait Failed");
                 exit(-1);
             } else if (epollEventCount == 0) {
-                Tools::logger.Log(LOG_WARN, "Epoll Wait Timeout");
+                mlog::logger.Log(LOG_WARN, "Epoll Wait Timeout");
                 continue;
             } else {
                 _epollRun(epollEvents, epollEventCount);
@@ -56,7 +56,7 @@ namespace Net {
         // 创建监听 socket
         _listenFd = socket(AF_INET, SOCK_STREAM, 0);
         if (_listenFd == -1) {
-            Tools::logger.Log(LOG_FATAL, "Create Listen Socket Failed");
+            mlog::logger.Log(LOG_FATAL, "Create Listen Socket Failed");
             exit(-1);
         }
 
@@ -72,11 +72,11 @@ namespace Net {
         serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
         _ipAddr = inet_ntoa(serverAddr.sin_addr);
         if (bind(_listenFd, (sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) {
-            Tools::logger.Log(LOG_FATAL, "Bind Listen Socket Failed");
+            mlog::logger.Log(LOG_FATAL, "Bind Listen Socket Failed");
             exit(-1);
         }
         if (listen(_listenFd, LISTENQ) == -1) {
-            Tools::logger.Log(LOG_FATAL, "Listen Failed");
+            mlog::logger.Log(LOG_FATAL, "Listen Failed");
             exit(-1);
         }
     }
@@ -101,7 +101,7 @@ namespace Net {
                     int commFd = _serverAccept();
                     _epollAdd(commFd, EPOLLIN);
                 } else {
-                    // Tools::logger.Log(LOG_DEBUG, "Receive Event From ", _commFdMap[fd].first, ":", _commFdMap[fd].second, ", fd = ", fd);
+                    // mlog::logger.Log(LOG_DEBUG, "Receive Event From ", _commFdMap[fd].first, ":", _commFdMap[fd].second, ", fd = ", fd);
                     _threadPool->enqueue(_receive, fd);
                 }
             }
@@ -114,12 +114,12 @@ namespace Net {
         int commFd = accept(_listenFd, (sockaddr*)&clientAddr, &clientAddrLen);
         if (commFd == -1) {
             // TODO: 改成 ERROR
-            Tools::logger.Log(LOG_FATAL, "Accept Failed");
+            mlog::logger.Log(LOG_FATAL, "Accept Failed");
             exit(-1);
         }
         _epollAdd(commFd, EPOLLIN | EPOLLET);
         _commFdMap[commFd] = std::make_pair(inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-        Tools::logger.Log(LOG_INFO, "Accept Connection From ", _commFdMap[commFd].first, ":", _commFdMap[commFd].second, ", fd = ", commFd);
+        mlog::logger.Log(LOG_INFO, "Accept Connection From ", _commFdMap[commFd].first, ":", _commFdMap[commFd].second, ", fd = ", commFd);
         return commFd;
     }
 
@@ -127,18 +127,18 @@ namespace Net {
         char buffer[1024];
         ssize_t recvLen = recv(fd, buffer, sizeof(buffer), 0);
         if (recvLen == -1) {
-            Tools::logger.Log(LOG_ERROR, "Recv Failed");
+            mlog::logger.Log(LOG_ERROR, "Recv Failed");
             close(fd);
             return;
         } else if (recvLen == 0) {
-            Tools::logger.Log(LOG_INFO, "Connection Closed, fd = ", fd, ", ip = ", TcpServer::getInstance()._commFdMap[fd].first, ", port = ", TcpServer::getInstance()._commFdMap[fd].second);
+            mlog::logger.Log(LOG_INFO, "Connection Closed, fd = ", fd, ", ip = ", TcpServer::getInstance()._commFdMap[fd].first, ", port = ", TcpServer::getInstance()._commFdMap[fd].second);
             TcpServer::getInstance()._epollDel(fd);
             TcpServer::getInstance()._commFdMap.erase(fd);
             close(fd);
             return;
         } else {
             buffer[recvLen] = '\0';
-            Tools::logger.Log(LOG_DEBUG, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
+            mlog::logger.Log(LOG_DEBUG, "Recv From ", TcpServer::getInstance()._commFdMap[fd].first, ":", TcpServer::getInstance()._commFdMap[fd].second, ", fd = ", fd, ", message = ", buffer);
             std::string str = buffer;
             ServerIO::Recv(fd, str);
 

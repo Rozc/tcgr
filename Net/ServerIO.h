@@ -48,7 +48,7 @@ public:
         std::string errs;
         bool ok = Json::parseFromStream(reader, iss, json, &errs);
         if (!ok) {
-            Tools::logger.Log(LOG_ERROR, "json parse error: ", errs);
+            mlog::logger.Log(LOG_ERROR, "json parse error: ", errs);
             return false;
         }
         return true;

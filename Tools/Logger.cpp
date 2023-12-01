@@ -4,10 +4,8 @@
 
 #include "Logger.h"
 
-
-
-namespace Tools {
-    std::ostream &operator<<(std::ostream &os, Tools::Code code) {
+namespace mlog {
+    std::ostream &operator<<(std::ostream &os, mlog::Code code) {
         return os << "\033[" << static_cast<int>(code) << "m";
     }
 
@@ -24,7 +22,8 @@ namespace Tools {
         _levelString = new char*[_maxLevel+1];
         _levelColor = new Code[_maxLevel+1];
 
-        _taskPool = new TaskPool(1);
+        _taskPool = new TaskPool(2);
+        _taskPool->run();
 
         setLevelProperty(LOG_DEBUG, Code::GREEN, "DEBUG");
         setLevelProperty(LOG_INFO, Code::DEFAULT, "INFO");
@@ -39,6 +38,7 @@ namespace Tools {
         delete[] _currentTime;
         delete[] _levelString;
         delete[] _levelColor;
+        delete _taskPool;
     }
 
     void Logger::_setTime() {
@@ -47,25 +47,14 @@ namespace Tools {
         strftime(_currentTime, 20, "%Y-%m-%d %H:%M:%S", localtime(&_timeNow));
     }
 
-//    void Logger::Log(Tools::Level level, const char *message) {
-//        _setTime();
-//        std::cout << _levelColor[level];
-//        std::cout << "[" << _currentTime << "] ";
-//        std::cout << "[" << _levelString[level] << "] ";
-//        std::cout << message;
-//        std::cout << DEFAULT << std::endl;
-//    }
-
-
-
-
-
     void Logger::setLevelProperty(int level, Code color, const char *levelString) {
         _levelColor[level] = color;
         _levelString[level] = const_cast<char *>(levelString);
     }
 
-    Logger& logger = Logger::getInstance();
+
+
+    // Logger& logger = Logger::getInstance();
 }
 
 

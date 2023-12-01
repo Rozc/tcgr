@@ -5,23 +5,23 @@
 #ifndef TCGR_THREAD_H
 #define TCGR_THREAD_H
 
-#include <thread>
+#include <pthread.h>
 #include <future>
+#include <csignal>
 
 class Thread {
 
 private:
-    std::thread* thread_;
+    pthread_t thread_;
     std::promise<bool> promise_;
     std::future<bool> future_;
 
 public:
     Thread() {
-        thread_ = nullptr;
+        future_ = promise_.get_future();
     }
 
     virtual ~Thread() {
-        delete thread_;
     }
 
     Thread(const Thread&) = delete;
@@ -30,28 +30,50 @@ public:
     Thread& operator=(Thread&&) = delete;
 
     void run() {
-        thread_ = new std::thread(&Thread::work_implement, this);
-        future_ = promise_.get_future();
-    }
-
-    void stop() {
-        promise_.set_value(true);
-        thread_->join();
+        auto func = [](void* arg) -> void* {
+            Thread* pseudo_this = static_cast<Thread*>(arg);
+            if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr) != 0) {
+                throw std::logic_error("pthread_setcancelstate error");
+            }
+            if (pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, nullptr) != 0) {
+                throw std::logic_error("pthread_setcanceltype error");
+            }
+            pseudo_this->work_implement();
+            pseudo_this->promise_.set_value(true);
+            return nullptr;
+        };
+        int ret = pthread_create(&thread_, nullptr, func, this);
+        if (ret != 0) {
+            throw std::system_error(ret, std::system_category(), "pthread_create error");
+        }
     }
 
     void join() {
-        thread_->join();
+        int ret = pthread_join(thread_, nullptr);
+        if (ret != 0) {
+            throw std::system_error(ret, std::system_category(), "pthread_join error");
+        }
     }
 
     void detach() {
-        thread_->detach();
+        int ret = pthread_detach(thread_);
+        if (ret != 0) {
+            throw std::system_error(ret, std::system_category(), "pthread_detach error");
+        }
+    }
+
+    template<typename Rep, typename Period>
+    bool wait_for(const std::chrono::duration<Rep, Period> &span) {
+        return future_.wait_for(span) == std::future_status::ready;
+    }
+
+    void send_signal(int signal) {
+        pthread_kill(thread_, signal);
     }
 
     virtual void work_implement() = 0;
 
-    bool is_running() {
-        return future_.wait_for(std::chrono::seconds(0)) == std::future_status::timeout;
-    }
+
 };
 
 

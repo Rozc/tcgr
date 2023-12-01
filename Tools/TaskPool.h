@@ -11,45 +11,35 @@
 
 class TaskQueue {
     friend class Task;
+    friend class TaskPool;
 
 protected:
-    std::queue<std::function<void(void)>> tasks_;
-    std::mutex mutex_;
-    std::condition_variable cond_;
     bool stopped_;
+    std::queue<std::function<void()>> tasks_;
+    std::mutex tasks_mutex_;
+    std::condition_variable cond_;
+
 
 public:
-    TaskQueue() {
-        stopped_ = false;
-    }
+    TaskQueue() : stopped_(false) {};
+    virtual ~TaskQueue() = default;
 
-    ~TaskQueue() = default;
-
-
-    void add_task(std::function<void(void)> task) {
+    void add_task(std::function<void()>& task) {
         {
-            std::unique_lock<std::mutex> lock(mutex_);
-            tasks_.push(std::move(task));
+            std::unique_lock<std::mutex> lock(tasks_mutex_);
+            tasks_.push(task);
         }
-        cond_.notify_all();
+        cond_.notify_one();
     }
 
-    bool empty() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        return tasks_.empty();
-    }
-
-    size_t size() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        return tasks_.size();
-    }
-
-    void clear() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        while (!tasks_.empty()) {
-            tasks_.pop();
+    void add_task(std::function<void()>&& task) {
+        {
+            std::unique_lock<std::mutex> lock(tasks_mutex_);
+            tasks_.emplace(std::move(task));
         }
+        cond_.notify_one();
     }
+
 };
 
 class Task final
@@ -62,9 +52,9 @@ public:
 
     void work_implement() override {
         while (true) {
-            std::function<void(void)> task;
+            std::function<void()> task;
             {
-                std::unique_lock<std::mutex> lock(task_queue_->mutex_);
+                std::unique_lock<std::mutex> lock(task_queue_->tasks_mutex_);
                 if (task_queue_->tasks_.empty()) {
                     if (task_queue_->stopped_) {
                         break;
@@ -78,7 +68,7 @@ public:
                 }
                 task = std::move(task_queue_->tasks_.front());
                 task_queue_->tasks_.pop();
-            }
+            } // unlock
             task_queue_->cond_.notify_all();
             task();
         }
@@ -111,8 +101,18 @@ public:
         task_queue_.add_task([task]() {
             (*task)();
         });
-        return res;
 
+
+        return res;
+    }
+
+    void stop() {
+        {
+            std::unique_lock<std::mutex> lock(task_queue_.tasks_mutex_);
+            task_queue_.stopped_ = true;
+            task_queue_.cond_.notify_all();
+        }
+        join_all();
     }
 
 
