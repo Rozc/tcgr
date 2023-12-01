@@ -9,14 +9,12 @@ add_executable(uni_threads unitest/unitest_threads.cpp
         Tools/Thread.h)
 
 add_executable(uni_logger unitest/unitest_logger.cpp
-        Tools/Logger.cpp
         Tools/Logger.h
         Tools/ThreadPool.h
         Tools/TaskPool.h
         Tools/Thread.h)
 
 add_executable(tcgr main.cpp
-        Tools/Logger.cpp
         Tools/Logger.h
         Net/TcpServer.cpp
         Net/TcpServer.h

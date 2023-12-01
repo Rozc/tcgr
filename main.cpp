@@ -33,9 +33,9 @@ int main() {
     // taskPool.stop();
     // mlog::logger.stop();
 
-//    MatchQueue& matchQueue = MatchQueue::getInstance();
+//    MatchQueue& matchQueue = MatchQueue::get_instance();
 //
-//    Net::TcpServer& server = Net::TcpServer::getInstance();
+//    Net::TcpServer& server = Net::TcpServer::get_instance();
 //    server.init(6666);
 //    server.run();
 

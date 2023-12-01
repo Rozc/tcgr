@@ -15,25 +15,30 @@ int f(int& a, int& b) {
 }
 
 class A {
-public:
-    TaskPool* tp;
+private:
     A() {
         tp = new TaskPool(2);
         tp->run();
     }
+public:
+    TaskPool* tp;
+    static A& getA() {
+        static A a;
+        return a;
+    }
 };
-
 
 int main() {
     std::cout << "welcome" << std::endl;
 
-    A ca;
 
+    A& ca = A::getA();
     int a = 1, b = 2;
 
-    auto c = ca.tp->add_task(f, std::ref(a), std::ref(b));
-    auto d = ca.tp->add_task(f, std::ref(b), std::ref(b));
-    int e = c.get(), f = d.get();
+    auto func = [&a, &b] { return f(a, b); };
+
+    ca.tp->add_task(func);
+    ca.tp->add_task(func);
 
     ca.tp->stop();
 
